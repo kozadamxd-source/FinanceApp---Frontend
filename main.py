@@ -100,3 +100,26 @@ async def get_metrics(symbol: str):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+@app.get("/debug")
+async def debug(symbol: str):
+    symbol = symbol.upper()
+    url = f"https://www.bankier.pl/inwestowanie/profile/quote.html?symbol={symbol}"
+
+    async with httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=15) as client:
+        r = await client.get(url)
+
+    soup = BeautifulSoup(r.text, "html.parser")
+    
+    raw = {}
+    for table in soup.find_all("table"):
+        for row in table.find_all("tr"):
+            cells = row.find_all(["td", "th"])
+            if len(cells) >= 2:
+                first_span = cells[0].find("span")
+                label = first_span.get_text(strip=True) if first_span else cells[0].get_text(strip=True)
+                value = cells[1].get_text(strip=True)
+                if label and value:
+                    raw[label] = value
+
+    return {"raw": raw, "status_code": r.status_code}
