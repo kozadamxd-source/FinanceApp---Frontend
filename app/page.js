@@ -164,9 +164,18 @@ export default function Home() {
         <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 28, display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ color: "#a78bfa" }}>📈</span> FinanceApp
         </div>
-        {["Dashboard", "Spółki", "Portfel", "Obserwowane"].map((item, i) => (
-          <div key={i} style={{ padding: "9px 12px", borderRadius: 10, fontSize: 13, color: i === 0 ? "#a78bfa" : "#888", background: i === 0 ? "#2d2a4a" : "transparent", cursor: "pointer" }}>
-            {item}
+        {[
+          { label: "Dashboard", href: "/" },
+          { label: "Spółki", href: "/spolki" },
+          { label: "Portfel", href: "/portfolio" },
+          { label: "Obserwowane", href: "/watchlist" },
+        ].map((item, i) => (
+          <div
+            key={i}
+            onClick={() => window.location.href = item.href}
+            style={{ padding: "9px 12px", borderRadius: 10, fontSize: 13, color: item.href === "/" ? "#a78bfa" : "#888", background: item.href === "/" ? "#2d2a4a" : "transparent", cursor: "pointer" }}
+          >
+            {item.label}
           </div>
         ))}
         <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
