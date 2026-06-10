@@ -9,8 +9,14 @@ html, body, #__next {
   padding: 0;
   width: 100%;
   min-height: 100%;
+  height: auto;
   -webkit-font-smoothing: antialiased;
   -webkit-touch-callout: none;
+}
+
+body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 input, button, textarea, select {
