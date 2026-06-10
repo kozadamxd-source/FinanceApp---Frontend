@@ -13,6 +13,7 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
   const debounceRef = useRef(null);
@@ -157,59 +158,73 @@ export default function Home() {
 
   if (!user) return null; // Czeka na sprawdzenie sesji
 
-  return (
-    <div style={{ display: "flex", height: "100vh", background: "#0f0e1a", color: "#fff", fontFamily: "sans-serif" }}>
-      {/* Sidebar */}
-      <div style={{ width: 180, background: "#13121f", padding: "24px 16px", display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
-        <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 28, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ color: "#a78bfa" }}>📈</span> FinanceApp
-        </div>
-        {[
-          { label: "Dashboard", href: "/" },
-          { label: "Spółki", href: "/spolki" },
-          { label: "Portfel", href: "/portfolio" },
-          { label: "Obserwowane", href: "/watchlist" },
-        ].map((item, i) => (
-          <div
-            key={i}
-            onClick={() => window.location.href = item.href}
-            style={{ padding: "9px 12px", borderRadius: 10, fontSize: 13, color: item.href === "/" ? "#a78bfa" : "#888", background: item.href === "/" ? "#2d2a4a" : "transparent", cursor: "pointer" }}
-          >
-            {item.label}
-          </div>
-        ))}
-        <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ padding: "9px 12px", borderRadius: 10, fontSize: 13, color: "#888", cursor: "pointer" }}>
-            Ustawienia
-          </div>
-          <div
-            onClick={logout}
-            style={{ padding: "9px 12px", borderRadius: 10, fontSize: 13, color: "#f87171", cursor: "pointer" }}
-          >
-            Wyloguj
-          </div>
-        </div>
-      </div>
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
-      {/* Main */}
-      <div style={{ flex: 1, padding: 24, overflowY: "auto", display: "flex", flexDirection: "column", gap: 20 }}>
-        {/* Top bar */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 500 }}>Dashboard</h1>
-            <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{user.email}</div>
+  return (
+    <>
+      <div style={{ display: "flex", minHeight: "100vh", background: "#0f0e1a", color: "#fff", fontFamily: "sans-serif" }}>
+        {/* Overlay dla mobile menu */}
+        <div 
+          className={`sidebar-overlay ${mobileMenuOpen ? 'mobile-open' : ''}`}
+          onClick={closeMobileMenu}
+        />
+
+        {/* Sidebar */}
+        <div className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: 180, background: "#13121f", padding: "24px 16px", display: "flex", flexDirection: "column", gap: 4, flexShrink: 0, position: "fixed", left: 0, top: 0, height: "100vh", zIndex: 100 }}>
+          <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 28, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ color: "#a78bfa" }}>📈</span> FinanceApp
           </div>
-          <div style={{ display: "flex", gap: 8, position: "relative" }} ref={wrapperRef}>
-            <div style={{ position: "relative" }}>
+          {[
+            { label: "Dashboard", href: "/" },
+            { label: "Spółki", href: "/spolki" },
+            { label: "Portfel", href: "/portfolio" },
+            { label: "Obserwowane", href: "/watchlist" },
+          ].map((item, i) => (
+            <div
+              key={i}
+              onClick={() => { window.location.href = item.href; closeMobileMenu(); }}
+              style={{ padding: "9px 12px", borderRadius: 10, fontSize: 13, color: item.href === "/" ? "#a78bfa" : "#888", background: item.href === "/" ? "#2d2a4a" : "transparent", cursor: "pointer" }}
+            >
+              {item.label}
+            </div>
+          ))}
+          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ padding: "9px 12px", borderRadius: 10, fontSize: 13, color: "#888", cursor: "pointer" }}>Ustawienia</div>
+            <div onClick={logout} style={{ padding: "9px 12px", borderRadius: 10, fontSize: 13, color: "#f87171", cursor: "pointer" }}>Wyloguj</div>
+          </div>
+        </div>
+
+        {/* Main */}
+        <div className="main-content" style={{ flex: 1, padding: 24, overflowY: "auto", display: "flex", flexDirection: "column", gap: 20, marginLeft: 180, minHeight: "100vh" }}>
+          {/* Top bar - with mobile hamburger */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+              <button 
+                className="hamburger"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                title="Menu"
+              >
+                ☰
+              </button>
+              <div style={{ minWidth: 0 }}>
+                <h1 style={{ fontSize: 20, fontWeight: 500, margin: 0 }}>Dashboard</h1>
+                <div style={{ fontSize: 12, color: "#555", marginTop: 2, wordBreak: "break-all" }}>{user.email}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <div style={{ display: "flex", gap: 8, position: "relative", flexWrap: "wrap" }} ref={wrapperRef}>
+            <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
               <input
                 placeholder="Szukaj spółki..."
                 value={symbol}
                 onChange={(e) => handleInput(e.target.value.toUpperCase())}
                 onKeyDown={(e) => { if (e.key === "Enter") { setShowSuggestions(false); loadData(); } }}
-                style={{ background: "#1e1c30", border: "0.5px solid #2d2b45", borderRadius: 8, padding: "7px 12px", color: "#fff", fontSize: 13, width: 240, outline: "none" }}
+                style={{ background: "#1e1c30", border: "0.5px solid #2d2b45", borderRadius: 8, padding: "7px 12px", color: "#fff", fontSize: 13, width: "100%", outline: "none", boxSizing: "border-box" }}
               />
               {showSuggestions && suggestions.length > 0 && (
-                <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#1e1c30", border: "0.5px solid #2d2b45", borderRadius: 8, marginTop: 4, zIndex: 100, overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#1e1c30", border: "0.5px solid #2d2b45", borderRadius: 8, marginTop: 4, zIndex: 100, overflow: "hidden", maxHeight: 250, overflowY: "auto" }}>
                   {suggestions.map((s, i) => (
                     <div
                       key={i}
@@ -227,62 +242,62 @@ export default function Home() {
             </div>
             <button
               onClick={() => { setShowSuggestions(false); loadData(); }}
-              style={{ background: "#7c3aed", border: "none", borderRadius: 8, padding: "7px 16px", color: "#fff", fontSize: 13, cursor: "pointer" }}
+              style={{ background: "#7c3aed", border: "none", borderRadius: 8, padding: "7px 16px", color: "#fff", fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}
             >
               {loading ? "..." : "Pobierz"}
             </button>
           </div>
-        </div>
 
-        {error && <div style={{ color: "#f87171", fontSize: 13 }}>Błąd: {error}</div>}
+          {error && <div style={{ color: "#f87171", fontSize: 13 }}>Błąd: {error}</div>}
 
-        {/* Metric cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-          {[
-            { label: "Aktualny kurs", value: history ? `${history.current_price} PLN` : "—" },
-            { label: "Zmiana 30d", value: priceChange ? `${priceChange}%` : "—", color: priceChange > 0 ? "#34d399" : "#f87171" },
-            { label: "52T max", value: history ? `${history.week_high_52} PLN` : "—" },
-            { label: "52T min", value: history ? `${history.week_low_52} PLN` : "—" },
-          ].map((card, i) => (
-            <div key={i} style={{ background: "#1a1829", borderRadius: 12, padding: 16, border: "0.5px solid #2a2840" }}>
-              <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 6 }}>{card.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 500, color: card.color || "#fff" }}>{card.value}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Chart + indicators */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          <div style={{ background: "#1a1829", borderRadius: 12, padding: 18, border: "0.5px solid #2a2840" }}>
-            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 4 }}>Kurs zamknięcia — ostatnie 30 sesji</div>
-            <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 14 }}>
-              {history ? history.symbol : "—"}
-              {history?.current_price && <span style={{ marginLeft: 12, color: "#a78bfa" }}>{history.current_price} PLN</span>}
-            </div>
-            <div style={{ height: 200, position: "relative" }}>
-              <canvas ref={chartRef} />
-              {!history && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#444", fontSize: 13 }}>Brak danych</div>}
-            </div>
-          </div>
-
-          <div style={{ background: "#1a1829", borderRadius: 12, padding: 18, border: "0.5px solid #2a2840" }}>
-            <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14, color: "#ddd" }}>Wskaźniki fundamentalne</div>
+          {/* Metric cards */}
+          <div className="grid-4col" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
             {[
-              { label: "C/Z (P/E)", value: fmt(metrics?.pe) },
-              { label: "C/WK (P/BV)", value: fmt(metrics?.pbv) },
-              { label: "ROE", value: fmt(metrics?.roe, "%") },
-              { label: "Marża netto", value: fmt(metrics?.net_margin, "%") },
-              { label: "Stopa dywidendy", value: fmt(metrics?.dividend_yield, "%") },
-              { label: "Ocena wyceny", value: metrics ? peRating(metrics.pe).label : "—", color: metrics ? peRating(metrics.pe).color : "#666" },
-            ].map((row, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 5 ? "0.5px solid #22203a" : "none", fontSize: 13 }}>
-                <span style={{ color: "#888" }}>{row.label}</span>
-                <span style={{ color: row.color || "#fff", fontWeight: 500 }}>{row.value}</span>
+              { label: "Aktualny kurs", value: history ? `${history.current_price} PLN` : "—" },
+              { label: "Zmiana 30d", value: priceChange ? `${priceChange}%` : "—", color: priceChange > 0 ? "#34d399" : "#f87171" },
+              { label: "52T max", value: history ? `${history.week_high_52} PLN` : "—" },
+              { label: "52T min", value: history ? `${history.week_low_52} PLN` : "—" },
+            ].map((card, i) => (
+              <div key={i} style={{ background: "#1a1829", borderRadius: 12, padding: 16, border: "0.5px solid #2a2840" }}>
+                <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 6 }}>{card.label}</div>
+                <div style={{ fontSize: 20, fontWeight: 500, color: card.color || "#fff", wordBreak: "break-word" }}>{card.value}</div>
               </div>
             ))}
           </div>
+
+          {/* Chart + indicators */}
+          <div className="chart-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div style={{ background: "#1a1829", borderRadius: 12, padding: 18, border: "0.5px solid #2a2840" }}>
+              <div style={{ fontSize: 13, color: "#aaa", marginBottom: 4 }}>Kurs zamknięcia — ostatnie 30 sesji</div>
+              <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 14 }}>
+                {history ? history.symbol : "—"}
+                {history?.current_price && <span style={{ marginLeft: 12, color: "#a78bfa" }}>{history.current_price} PLN</span>}
+              </div>
+              <div style={{ height: 200, position: "relative" }}>
+                <canvas ref={chartRef} />
+                {!history && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#444", fontSize: 13 }}>Brak danych</div>}
+              </div>
+            </div>
+
+            <div style={{ background: "#1a1829", borderRadius: 12, padding: 18, border: "0.5px solid #2a2840" }}>
+              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14, color: "#ddd" }}>Wskaźniki fundamentalne</div>
+              {[
+                { label: "C/Z (P/E)", value: fmt(metrics?.pe) },
+                { label: "C/WK (P/BV)", value: fmt(metrics?.pbv) },
+                { label: "ROE", value: fmt(metrics?.roe, "%") },
+                { label: "Marża netto", value: fmt(metrics?.net_margin, "%") },
+                { label: "Stopa dywidendy", value: fmt(metrics?.dividend_yield, "%") },
+                { label: "Ocena wyceny", value: metrics ? peRating(metrics.pe).label : "—", color: metrics ? peRating(metrics.pe).color : "#666" },
+              ].map((row, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 5 ? "0.5px solid #22203a" : "none", fontSize: 13 }}>
+                  <span style={{ color: "#888" }}>{row.label}</span>
+                  <span style={{ color: row.color || "#fff", fontWeight: 500 }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
